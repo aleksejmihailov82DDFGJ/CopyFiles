@@ -4,7 +4,7 @@ import hashlib
 import sys
 import json
 import time
-from typing import Union
+# from typing import Union #python < 3.10
 from art import tprint
 from my_stack import MyStack
 
@@ -14,14 +14,16 @@ from my_stack import MyStack
 # from time import sleep
 
 class CopyFiles:
-    def __init__(self, source, destination):
+    # def __init__(self, source: Union[str, pathlib.Path], destination: Union[str, pathlib.Path]): #python < 3.10
+    def __init__(self, source: str | pathlib.Path, destination: str | pathlib.Path):  # python >= 3.10
         self.source = pathlib.Path(source).absolute()
         self.destination = pathlib.Path(destination).absolute()
         self.data_json_file = self.destination.joinpath('db.json')
         self.data_json = {}
 
     @classmethod
-    def hash_file(cls, filename):
+    # def hash_file(cls, filename: Union[str, pathlib.Path]) -> str:  #python < 3.10
+    def hash_file(cls, filename: str | pathlib.Path) -> str:  # python >= 3.10
         """Возвращает хэш сумму файла"""
         h = hashlib.sha256()
         with open(filename, 'rb') as file:
@@ -31,7 +33,8 @@ class CopyFiles:
                 h.update(chunk)
         return h.hexdigest()
 
-    def update_data_file(self, directory: Union[str, pathlib.Path] = None):
+    # def update_data_file(self, directory: Union[str, pathlib.Path] = None): #python < 3.10
+    def update_data_file(self, directory: str | pathlib.Path = None):  # python >= 3.10
         if directory is None:
             directory = self.destination
         else:
@@ -57,7 +60,10 @@ class CopyFiles:
             self.data_json_file = directory.joinpath('db.json')
             self.dump_json()
 
-    def copy_files(self, source=None, destination=None, json_use=True):
+    # def copy_files(self, source: Union[str, pathlib.Path] = None,
+    #                destination: Union[str, pathlib.Path] = None, json_use=True): #python < 3.10
+    def copy_files(self, source: str | pathlib.Path = None,  # python >= 3.10
+                   destination: str | pathlib.Path = None, json_use=True):
         if destination is None:
             destination = self.destination
         if source is None:
@@ -106,12 +112,16 @@ class CopyFiles:
                             print(f"Создана папка {y}")
                     else:
                         hash_x = json_src_data[str(x)].get('sha256')
-                        hash_y = None
                         if str(y) in json_dest_data:
                             if json_dest_data[str(y)].get('sha256') is not None:
                                 hash_y = json_dest_data[str(y)].get('sha256')
                                 if hash_x == hash_y:
-                                    print(f"Файлы {str(x)} и {str(y)} совпадают.")
+                                    if y.exists():
+                                        print(f"Файлы {str(x)} и {str(y)} совпадают.")
+                                    else:
+                                        shutil.copyfile(x, y)
+                                        hash_y = hash_x
+                                        print(f"Файл {str(x)} скопирован в {str(y.parent)}.")
                                 else:
                                     shutil.copyfile(x, y)
                                     hash_y = hash_x
@@ -180,7 +190,8 @@ class CopyFiles:
         with open(self.data_json_file, "w", encoding="utf-8") as fp:
             json.dump(self.data_json, fp, indent=4, sort_keys=True)
 
-    def load_json(self, file):
+    # def load_json(self, file: Union[str, pathlib.Path]): #python < 3.10
+    def load_json(self, file: str | pathlib.Path):  # python >= 3.10
         with open(file, "r", encoding="utf-8") as fp:
             self.data_json = json.load(fp)
             return self.data_json
